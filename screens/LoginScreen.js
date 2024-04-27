@@ -6,20 +6,66 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { auth } from "../fireBase";
+import { useNavigation } from "@react-navigation/native";
 
 export default function LoginScreen() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        navigation.navigate("Home");
+      }
+    });
+  }, []);
+
+  const handleSignUp = () => {
+    auth
+      .createUserWithEmailAndPassword(email, password)
+      .then((userCredentials) => {
+        const user = userCredentials.user;
+        console.log("Kullanıcı", user.email);
+      })
+      .catch((error) => alert(error.message));
+  };
+  const handleSignIn = () => {
+    auth
+      .signInWithEmailAndPassword(email, password)
+      .then((userCredentials) => {
+        const user = userCredentials.user;
+        console.log("Kullanıcı giriş yaptı", user.email);
+      })
+      .catch((error) => alert(error.message));
+  };
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.inputContainer}>
-        <TextInput style={styles.input} placeholder="Email" />
-        <TextInput style={styles.input} placeholder="Password" />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={(pass) => setPassword(pass)}
+        />
       </View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleSignIn}>
           <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.outlineButton]}>
+        <TouchableOpacity
+          style={[styles.button, styles.outlineButton]}
+          onPress={handleSignUp}
+        >
           <Text style={styles.outlineButtonText}>Sign Up</Text>
         </TouchableOpacity>
       </View>
@@ -56,7 +102,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontSize: 16,
-    fontWeight:'700'
+    fontWeight: "700",
   },
   outlineButton: {
     backgroundColor: "white",
@@ -65,6 +111,6 @@ const styles = StyleSheet.create({
   outlineButtonText: {
     color: "#0782F9",
     fontSize: 16,
-    fontWeight:'700'
+    fontWeight: "700",
   },
 });
